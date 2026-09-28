@@ -21,10 +21,9 @@ using namespace std;
 // wbuf = write buffer
 // the server recieves first, and client sends first,
 // then the server sends, and client recieves
-static int32_t one_request(int connfd)
-{
-    // 4 bytes header
-}
+// static int32_t one_request(int connfd)
+// {
+// }
 
 // struct addrinfo {
 //            int              ai_flags;
@@ -51,7 +50,7 @@ static int32_t one_request(int connfd)
 int main()
 {
     // get server/host ip
-    struct addrinfo hints;
+    struct addrinfo hints{};
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = 0;
@@ -70,6 +69,13 @@ int main()
         die("Socket failure");
     }
 
+    // Allow binding to the port even if it is in TIME_WAIT
+    int val = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val)) < 0)
+    {
+        die("setsockopt failure");
+    }
+
     // bind fd to socket
     if (bind(fd, res->ai_addr, res->ai_addrlen))
     {
@@ -81,11 +87,35 @@ int main()
         die("Listen failure");
     }
 
-    while(true){
-        int acceptFd = accept(fd, res->ai_addr, &res->ai_addrlen);
+    while (true)
+    {
+        int acceptFd = accept(fd, nullptr, nullptr);
 
-        if (acceptFd < 0 && errno != EINTR){
+        if (acceptFd < 0)
+        {
             die("Accept failure");
+            break;
         }
+
+        int maxBytes = 5;
+        char s[maxBytes];
+        int bytesRed = -2;
+        do
+        {
+            bytesRed = read(acceptFd, s, maxBytes);
+            if (bytesRed > 0 && bytesRed < maxBytes)
+            {
+                s[bytesRed] = '\0';
+                cout << bytesRed << ": " << s << endl;
+            }
+            if (bytesRed == 0)
+            {
+                break;
+            }
+            cout << "About to write!" << endl;
+            const char *reply = "Cops eat dick!";
+
+            int bytesWrote = write(acceptFd, reply, strlen(reply) * sizeof(char));
+        } while (bytesRed > 0);
     }
 };
