@@ -7,10 +7,11 @@
 
 constexpr size_t k_max_msg = 4096;
 
-void die(const char *msg)
+inline void die(const char *msg)
 {
     std::cerr << std::strerror(errno) << " " << msg << std::endl;
     exit(EXIT_FAILURE);
 }
+
 
 #endif
