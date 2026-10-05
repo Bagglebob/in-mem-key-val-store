@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <cassert>
 
+#include "resp.h"
 #include "common.h"
 using namespace std;
 
@@ -33,7 +34,11 @@ namespace RedClone
 
         ssize_t readMsg(int &fd) const;
 
+        ssize_t readRaw(int fd, std::string &in_buffer);
+
         ssize_t writeMsg(int &fd) const;
+
+        ssize_t writeRaw(int fd, const std::string &data);
     };
 }
 #endif

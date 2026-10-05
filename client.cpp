@@ -27,9 +27,43 @@ int main()
         die("Connect failure");
     }
 
+    string input{};
+    string in_buffer{};
+
     do
     {
-        sock.writeMsg(fd);
-        sock.readMsg(fd);
+        cout << "Write message:" << endl;
+        if (!getline(cin, input)){
+            break;
+        }
+        RedClone::Resp resp = RedClone::Resp::fromCli(input);
+        string serialized = resp.serialize();
+        // --- DEBUG PRINT ---
+        cout << "[DEBUG Client Outgoing Payload]: ";
+        for (char c : serialized)
+        {
+            if (c == '\r')
+                cout << "\\r";
+            else if (c == '\n')
+                cout << "\\n";
+            else
+                cout << c;
+        }
+        cout << endl;
+        
+        // send message
+        sock.writeRaw(fd, serialized);
+
+        // read server response
+        ssize_t bytesRead = sock.readRaw(fd, in_buffer);
+
+        RedClone::Resp reply;
+        if (RedClone::Resp::parser(in_buffer, reply))
+        {
+            cout << "Server reply parsed successfully!" << endl;
+        }
+
     } while (true);
+
+    close(fd);
 };

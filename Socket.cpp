@@ -55,22 +55,47 @@ ssize_t RedClone::Socket::readMsg(int &fd) const
     return bytesRead;
 }
 
+ssize_t RedClone::Socket::readRaw(int fd, std::string &in_buffer)
+{
+    char buf[4096];
+    ssize_t bytesRead = read(fd, buf, sizeof(buf));
+    if (bytesRead > 0)
+    {
+        in_buffer.append(buf, bytesRead);
+    }
+    return bytesRead;
+}
+
+
+
 ssize_t RedClone::Socket::writeMsg(int &fd) const
 {
     std::string msg{};
     cout << "Write message:" << endl;
     getline(cin, msg);
-    uint32_t msgSize = htonl(strlen(msg.c_str()));
+    // resp
+    RedClone::Resp resp = Resp::fromCli(msg);
+    string msgToSend = resp.serialize();
+    cout << "result of serializing: " << msgToSend << endl;
+    // resp ends
 
-    // storing raw char buffer
-    char msgToSend[sizeof(msgSize) + msg.size()]{};
+    // uint32_t msgSize = htonl(strlen(msg.c_str()));
 
-    // copy msg size
-    memcpy(&msgToSend, &msgSize, sizeof(msgSize));
+    // // storing raw char buffer
+    // char msgToSend[sizeof(msgSize) + msg.size()]{};
 
-    // copy message
-    memcpy(&(msgToSend[sizeof(msgSize)]), msg.c_str(), strlen(msg.c_str()));
+    // // copy msg size
+    // memcpy(&msgToSend, &msgSize, sizeof(msgSize));
+
+    // // copy message
+    // memcpy(&(msgToSend[sizeof(msgSize)]), msg.c_str(), strlen(msg.c_str()));
 
     // send message to server
-    return write(fd, msgToSend, (size_t)sizeof(msgSize) + msg.size());
+    // return write(fd, msgToSend, (size_t)sizeof(msgSize) + msg.size());
+    return write(fd, msgToSend.data(), msgToSend.size());
+}
+
+ssize_t RedClone::Socket::writeRaw(int fd, const string &data)
+{
+    return write(fd, data.data(), data.size());
 }

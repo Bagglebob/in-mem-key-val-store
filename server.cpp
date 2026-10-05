@@ -50,11 +50,36 @@ int main()
             die("Accept failure");
             break;
         }
+        string in_buffer;
 
         while (true)
         {
-            sock.readMsg(acceptFd);
-            sock.writeMsg(acceptFd);
+            // read incoming bytes
+            ssize_t bytesRead = sock.readRaw(acceptFd, in_buffer);
+
+            // client disconnect
+            if (bytesRead <= 0) break;
+
+            RedClone::Resp command;
+            while (RedClone::Resp::parser(in_buffer, command))
+            {
+                // DEBUG Print parsed command tokens
+                cout << "[Received Command]: ";
+                const auto &args = command.getData();
+                for (size_t i = 0; i < args.size(); ++i)
+                {
+                    cout << "[" << i << "]: \"" << args[i] << "\" ";
+                }
+                cout << endl;
+
+                // 3. TODO Build a server response (e.g., SimpleString "+PONG\r\n")
+                RedClone::Resp response(RedClone::RespType::SimpleString, "PONG");
+                string toSend = response.serialize();
+
+                // 4. Send response back to client
+                sock.writeRaw(acceptFd, toSend);
+            }
         }
+        close(acceptFd);
     }
 };
