@@ -57,7 +57,7 @@ ssize_t RedClone::Socket::readMsg(int &fd) const
 
 ssize_t RedClone::Socket::readRaw(int fd, std::string &in_buffer)
 {
-    char buf[4096];
+    char buf[12];
     ssize_t bytesRead = read(fd, buf, sizeof(buf));
     if (bytesRead > 0)
     {

@@ -14,6 +14,7 @@
 #include <cassert>
 
 #include "Socket.hpp"
+#include "handler.h"
 
 using namespace std;
 
@@ -40,7 +41,7 @@ int main()
     {
         die("Listen failure");
     }
-
+    RedClone::KVStore kv_store{};
     while (true)
     {
         int acceptFd = accept(fd, nullptr, nullptr);
@@ -61,19 +62,22 @@ int main()
             if (bytesRead <= 0) break;
 
             RedClone::Resp command;
+
+            // parser will return false until all the bytes are inside in_buffer
             while (RedClone::Resp::parser(in_buffer, command))
             {
                 // DEBUG Print parsed command tokens
-                cout << "[Received Command]: ";
-                const auto &args = command.getData();
-                for (size_t i = 0; i < args.size(); ++i)
-                {
-                    cout << "[" << i << "]: \"" << args[i] << "\" ";
-                }
-                cout << endl;
+                // cout << "[Received Command]: ";
+                // const auto &args = command.getData();
+                // for (size_t i = 0; i < args.size(); ++i)
+                // {
+                //     cout << "[" << i << "]: \"" << args[i] << "\" ";
+                // }
+                // cout << endl;
 
                 // 3. TODO Build a server response (e.g., SimpleString "+PONG\r\n")
-                RedClone::Resp response(RedClone::RespType::SimpleString, "PONG");
+                // RedClone::Resp response(RedClone::RespType::SimpleString, "PONG");
+                RedClone::Resp response = RedClone::executeCommand(command, kv_store);
                 string toSend = response.serialize();
 
                 // 4. Send response back to client
