@@ -162,14 +162,16 @@ bool RedClone::Resp::parser(string &buffer, Resp &outResp)
     if (typeByte == '$')
     {
         int length = std::stoi(buffer.substr(1, crlf - 1));
+        
         // null bulk strings
-        // if (length == -1)
-        // {
-        //     outResp.type = RespType::BulkString;
-        //     outResp.data.clear();
-        //     buffer.erase(0, crlf + 2);
-        //     return true;
-        // }
+        // this happens when the server can't execute the client command and sends an error
+        if (length == -1)
+        {
+            outResp.type = RespType::BulkString;
+            outResp.data.clear();
+            buffer.erase(0, crlf + 2);
+            return true;
+        }
 
         // Header ("$6\r\n"): crlf + 2
         // Payload: length

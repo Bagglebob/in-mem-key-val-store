@@ -50,9 +50,17 @@ int main()
         const auto &args = reply.getData();
         cout << "Server reply:";
 
-        for (size_t i = 0; i < args.size(); ++i)
+        if (args.empty())
         {
-            cout << " " << args[i] << " ";
+            cout << " (nil)" << endl;
+        }
+        else
+        {
+            for (const auto &arg : args)
+            {
+                cout << " " << arg;
+            }
+            cout << endl;
         }
         cout << endl;
     }   
