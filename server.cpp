@@ -57,16 +57,20 @@ int main()
         // non blocking i/o
         fd_set reads; // creates a copy so the original isn't destroyed to fuck
         reads = master_set;
-        if (select(max_socket + 1, &reads, 0, 0, 0) < 0)
+        int retVal = select(max_socket + 1, &reads, 0, 0, 0);
+        // cout << "DEBUG: retVal: " << retVal << endl;
+        if (retVal < 0)
         {
             fprintf(stderr, "select() failed. (%d)\n", errno);
             return 1;
         }
-        // int acceptFd = -1;
+
         for (int i = 1; i <= max_socket; ++i)
         {
+            // cout << "DEBUG: i: " << i << ", DEBUG: fd_listen: " << fd_listen << endl;
             if (FD_ISSET(i, &reads))
             {
+                // cout << "DEBUG: i: " << i << ", DEBUG: fd_listen: " << fd_listen <<endl;
                 // if it's a listening socket then accept, otherwise read
                 if (i == fd_listen)
                 {
@@ -87,7 +91,8 @@ int main()
                     {
                         in_buffer.erase(i);
                         FD_CLR(i, &master_set);
-                        close(i);                        
+                        close(i);
+                        continue;
                         // break;
                     }
 
@@ -97,7 +102,7 @@ int main()
                         RedClone::Resp response = RedClone::executeCommand(command, kv_store);
                         string toSend = response.serialize();
                         sock.writeRaw(i, toSend);
-                    }                    
+                    }
                 }
             }
         }
